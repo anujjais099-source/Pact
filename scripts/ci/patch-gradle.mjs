@@ -119,6 +119,22 @@ edit('app/build.gradle.kts', 'core library desugaring', (s) => {
   return out;
 });
 
+// ── gradle.properties — stop the JVM-target mismatch failing the build ──────
+// AGP now compiles library Java at 11, while plugins such as flutter_timezone,
+// cloud_functions and camera_android_camerax still declare Kotlin jvmTarget
+// 1.8. Kotlin 2.x treats that pairing as a hard error. We cannot edit those
+// plugins, and the mixed bytecode dexes correctly, so demote the check to a
+// warning — the documented escape hatch for exactly this situation.
+edit('gradle.properties', 'JVM target validation set to warning', (s) => {
+  if (s.includes('kotlin.jvm.target.validation.mode')) return s;
+  return (
+    s.trimEnd() +
+    '\n\n# Plugins still on Kotlin jvmTarget 1.8 vs AGP\'s Java 11. Mixed targets\n' +
+    '# dex fine; the strict check is what breaks the build.\n' +
+    'kotlin.jvm.target.validation.mode=warning\n'
+  );
+});
+
 // ── report ──────────────────────────────────────────────────────────────────
 console.log(`\npatch-gradle: ${changed} edit(s) applied.`);
 
