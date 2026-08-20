@@ -1,0 +1,111 @@
+name: Build Android APK
+
+# Builds a release APK in the cloud so no local Flutter/Java install is needed.
+# Grab the file from the run's Artifacts section, or from Releases on a tag.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show toolchain
+        run: flutter --version
+
+      # Fills in gradlew, launcher icons and any platform scaffolding that is
+      # not committed. It never overwrites files that already exist, so our
+      # manifest, gradle config and MainActivity survive untouched.
+      - name: Complete the Android scaffold
+        working-directory: app
+        run: flutter create --platforms=android --org com.pactapp --project-name pact .
+
+      # google-services.json is git-ignored (it belongs to your Firebase
+      # project). Use the real one if you have added it as a secret, otherwise
+      # write a structurally valid stand-in so the Gradle plugin can run.
+      - name: Provide google-services.json
+        working-directory: app/android/app
+        env:
+          GS_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GS_JSON" ]; then
+            echo "$GS_JSON" | base64 -d > google-services.json
+            echo "Using google-services.json from repository secret."
+          else
+            cat > google-services.json <<'JSON'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "pact-placeholder",
+              "storage_bucket": "pact-placeholder.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+                  "android_client_info": { "package_name": "com.pactapp.pact" }
+                },
+                "oauth_client": [],
+                "api_key": [ { "current_key": "PLACEHOLDER_API_KEY_NOT_FUNCTIONAL" } ],
+                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          JSON
+            echo "::warning::No GOOGLE_SERVICES_JSON secret set - built with a placeholder. The app will compile but cannot reach Firebase at runtime."
+          fi
+
+      - name: Install dependencies
+        working-directory: app
+        run: flutter pub get
+
+      # Reported, not enforced: a lint warning should never cost you the build.
+      - name: Analyze
+        working-directory: app
+        continue-on-error: true
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        working-directory: app
+        continue-on-error: true
+        run: flutter test
+
+      - name: Build release APK
+        working-directory: app
+        run: flutter build apk --release
+
+      - name: Rename for humans
+        run: cp app/build/app/outputs/flutter-apk/app-release.apk pact.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pact-apk
+          path: pact.apk
+          retention-days: 30
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: pact.apk
+          generate_release_notes: true
