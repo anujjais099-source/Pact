@@ -25,6 +25,21 @@ Store listing needs: 512×512 icon, 1024×500 feature graphic, 2–8 phone
 screenshots (Home with a live streak, the camera screen, the break screen — in
 that order; the break screen is the product).
 
+## 2b. Re-enable R8 before you ship
+
+CI disables shrinking (`isMinifyEnabled = false`) so demo builds are green.
+That is right for a build you hand to friends and wrong for the Play release —
+the APK carries every unused class and is trivially readable.
+
+Turning it back on means giving R8 a keep list. Start by removing the two lines
+in `scripts/ci/patch-gradle.mjs`, run the build, and read the R8 report: it
+names the classes it could not resolve. Add a `-keep` or `-dontwarn` for each
+in `app/android/app/proguard-rules.pro`, and wire that file in with
+`proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"`.
+
+Firebase and the camera plugin are the usual sources; the rules already in
+`proguard-rules.pro` cover most of it.
+
 ## 3. Build
 
 ```bash

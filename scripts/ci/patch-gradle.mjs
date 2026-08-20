@@ -119,6 +119,25 @@ edit('app/build.gradle.kts', 'core library desugaring', (s) => {
   return out;
 });
 
+// ── app/build.gradle.kts — turn off R8 for now ──────────────────────────────
+// R8 shrinking fails on this dependency set without a curated keep list, and
+// the generated build file never referenced the proguard rules we copy in.
+// A demo APK gains nothing from shrinking: it costs a few MB and buys
+// obfuscation nobody needs yet. Re-enable with proper rules before the Play
+// release — see docs/phase-10-play-launch.md.
+edit('app/build.gradle.kts', 'R8 shrinking disabled', (s) => {
+  if (s.includes('isMinifyEnabled')) return s;
+  const anchor = /(signingConfig = signingConfigs\.getByName\("debug"\))/;
+  if (!anchor.test(s)) {
+    problems.push('app/build.gradle.kts: release signingConfig line not found');
+    return null;
+  }
+  return s.replace(
+    anchor,
+    '$1\n            isMinifyEnabled = false\n            isShrinkResources = false'
+  );
+});
+
 // ── gradle.properties — stop the JVM-target mismatch failing the build ──────
 // AGP now compiles library Java at 11, while plugins such as flutter_timezone,
 // cloud_functions and camera_android_camerax still declare Kotlin jvmTarget
