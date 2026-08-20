@@ -34,9 +34,16 @@ jobs:
       # Fills in gradlew, launcher icons and any platform scaffolding that is
       # not committed. It never overwrites files that already exist, so our
       # manifest, gradle config and MainActivity survive untouched.
+      # Fills in gradlew and the wrapper jar. It also drops Kotlin-DSL twins
+      # (build.gradle.kts, settings.gradle.kts) next to our Groovy files, which
+      # Gradle then reports as ambiguous — so remove them and keep one DSL.
       - name: Complete the Android scaffold
         working-directory: app
-        run: flutter create --platforms=android --org com.pactapp --project-name pact .
+        run: |
+          flutter create --platforms=android --org com.pactapp --project-name pact .
+          find android -name "*.gradle.kts" -print -delete
+          echo "--- gradle wrapper ---"
+          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties
 
       # google-services.json is git-ignored (it belongs to your Firebase
       # project). Use the real one if you have added it as a secret, otherwise
@@ -131,7 +138,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-logs
           path: |
@@ -145,7 +152,7 @@ jobs:
         run: cp app/build/app/outputs/flutter-apk/app-release.apk pact.apk
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pact-apk
           path: pact.apk
