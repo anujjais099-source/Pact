@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- Google tag (gtag.js) — measurement ID lives here, it is public by design -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6E27HWMNEH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag("js", new Date());
+  gtag("config", "G-6E27HWMNEH");
+</script>
+
 <title>Pact — Your streak is no longer yours alone</title>
 <meta name="description" content="Pact matches you with one stranger. You both check in daily with a live photo. If either misses, the shared streak hits zero. No chat, no feed.">
 
@@ -675,6 +684,29 @@ const NOTIFY_EMAIL = "anujjais099@gmail.com";
     setNote("SOON",
       "Pact launches on Android shortly. Leave your email and you get the " +
       "link the day it is ready — nothing else, ever.");
+  }
+
+  /* The two numbers that answer "is this interesting?" — did anyone want the
+     app, and did anyone play with the streak demo. Guarded so an ad blocker
+     cannot take the page down with it. */
+  function track(name, params) {
+    if (typeof window.gtag === "function") window.gtag("event", name, params || {});
+  }
+
+  btn.addEventListener("click", function () {
+    track("cta_click", {
+      cta_state: PLAY_URL ? "play_store" : (APK_URL ? "apk" : "email")
+    });
+  });
+
+  var demo = document.getElementById("breakBtn");
+  if (demo) {
+    var counted = false;
+    demo.addEventListener("click", function () {
+      if (counted) return;   // once per visitor; the toggle is meant to be replayed
+      counted = true;
+      track("demo_break_streak");
+    });
   }
 })();
 </script>

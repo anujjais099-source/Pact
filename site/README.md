@@ -71,6 +71,26 @@ to remember.
 Note the `.gitignore` skips `*.apk` by default — force it in with
 `git add -f site/pact.apk` when you are ready to publish a build.
 
+## Analytics
+
+Google Analytics 4 is installed in the `<head>`, property `G-6E27HWMNEH`.
+Change that ID in two places in `index.html` if you move properties.
+
+Beyond GA4 pageviews, the page reports two custom events — the only two that
+answer whether people find this interesting:
+
+| Event | Fires when |
+|---|---|
+| `cta_click` | the download button is pressed. The `cta_state` parameter says whether it was in email, apk or play_store mode |
+| `demo_break_streak` | someone taps "see what happens when one of you misses" — they engaged with the mechanic rather than just scrolling |
+
+Both are wrapped in a `typeof gtag === "function"` check, so an ad blocker
+degrades the page to plain HTML instead of breaking the buttons.
+
+Realtime traffic shows up at analytics.google.com within seconds; the custom
+events appear under **Reports → Engagement → Events** after a delay of up to
+24 hours the first time.
+
 ## Social preview image
 
 `og:image` is deliberately absent — a broken one is worse than none. To add it:
