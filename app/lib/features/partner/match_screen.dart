@@ -123,6 +123,34 @@ class _Proof extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A proof record can exist before its photo does — in a demo build there
+    // is never a photo at all. Say the day was completed rather than claiming
+    // we are still waiting on someone who already showed up.
+    if (proof != null && proof!.photoUrl.isEmpty) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: PactColors.surfaceRaised,
+          borderRadius: Radii.lg,
+          border: Border.all(color: PactColors.green.withValues(alpha: 0.3)),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle_outline_rounded,
+                  size: 26, color: PactColors.green),
+              const SizedBox(height: 10),
+              Text(
+                Fmt.submittedAt(proof!.submittedAt),
+                style: const TextStyle(color: PactColors.green, fontSize: 13.5),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (proof == null) {
       return Container(
         height: 200,

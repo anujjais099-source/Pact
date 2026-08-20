@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/pact_theme.dart';
 import '../data/repositories/notification_repository.dart';
 import '../data/repositories/user_repository.dart';
+import '../demo/demo_mode.dart';
 import '../state/pact_memory.dart';
 import '../state/providers.dart';
 import 'router.dart';
@@ -21,6 +22,15 @@ class _PactAppState extends ConsumerState<PactApp> {
   @override
   Widget build(BuildContext context) {
     // Side effects that belong to the session, not to any one screen.
+    // A demo build has no Firebase behind it, so none of them run.
+    if (!ref.read(demoModeProvider)) {
+      _watchSession();
+    }
+
+    return _app(context);
+  }
+
+  void _watchSession() {
     ref.listen(currentUserProvider, (_, next) {
       final me = next.value;
       if (me == null) {
@@ -40,7 +50,9 @@ class _PactAppState extends ConsumerState<PactApp> {
             );
       }
     });
+  }
 
+  Widget _app(BuildContext context) {
     return MaterialApp.router(
       title: 'Pact',
       debugShowCheckedModeBanner: false,

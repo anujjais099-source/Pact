@@ -7,6 +7,7 @@ import '../../core/widgets/pact_button.dart';
 import '../../core/widgets/pact_loader.dart';
 import '../../core/widgets/pact_scaffold.dart';
 import '../../data/repositories/user_repository.dart';
+import '../../demo/demo_mode.dart';
 import '../../data/services/firebase_service.dart';
 import '../../state/providers.dart';
 
@@ -58,6 +59,12 @@ class _GoalSetupScreenState extends ConsumerState<GoalSetupScreen> {
 
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
+
+    // Nothing to persist in a demo build; just close the sheet.
+    if (ref.read(demoModeProvider)) {
+      if (mounted && widget.isEditing) Navigator.of(context).pop();
+      return;
+    }
 
     setState(() {
       _saving = true;

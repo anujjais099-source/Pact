@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
 import 'core/utils/pact_clock.dart';
+import 'demo/demo_mode.dart';
+import 'demo/demo_overrides.dart';
 import 'firebase_options.dart';
 import 'state/pact_memory.dart';
 
@@ -25,9 +27,13 @@ Future<void> _onBackgroundMessage(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await _connectEmulatorsIfAsked();
-  FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
+  // A demo build never reaches Firebase, so it must never initialise it
+  // either — a placeholder config would fail loudly on the first call.
+  if (!kDemoMode) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await _connectEmulatorsIfAsked();
+    FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
+  }
 
   // Timezone database, loaded once: a pact has one midnight and both phones
   // must agree on it.
@@ -47,7 +53,10 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      overrides: [prefsProvider.overrideWithValue(prefs)],
+      overrides: [
+        prefsProvider.overrideWithValue(prefs),
+        if (kDemoMode) ...demoOverrides(),
+      ],
       child: const PactApp(),
     ),
   );

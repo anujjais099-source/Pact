@@ -11,6 +11,7 @@ import '../../core/widgets/pact_loader.dart';
 import '../../core/widgets/pact_scaffold.dart';
 import '../../core/widgets/stat_tile.dart';
 import '../../data/repositories/user_repository.dart';
+import '../../demo/demo_mode.dart';
 import '../../state/auth_controller.dart';
 import '../../state/providers.dart';
 import '../onboarding/goal_setup_screen.dart';
@@ -133,9 +134,16 @@ class ProfileScreen extends ConsumerWidget {
           ],
           Gap.h32,
           PactButton(
-            label: 'Sign out',
+            label: ref.watch(demoModeProvider) ? 'Reset demo' : 'Sign out',
             style: PactButtonStyle.secondary,
-            onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+            onPressed: () {
+              if (ref.read(demoModeProvider)) {
+                ref.read(demoProvider.notifier).reset();
+                context.go(Routes.home);
+                return;
+              }
+              ref.read(authControllerProvider.notifier).signOut();
+            },
           ),
           Gap.h16,
           Center(
@@ -178,7 +186,10 @@ class _NotificationToggle extends ConsumerWidget {
           Switch(
             value: enabled,
             activeThumbColor: PactColors.violet,
-            onChanged: (v) => ref.read(userRepositoryProvider).setNotifications(uid, v),
+            onChanged: (v) {
+              if (ref.read(demoModeProvider)) return;
+              ref.read(userRepositoryProvider).setNotifications(uid, v);
+            },
           ),
         ],
       ),

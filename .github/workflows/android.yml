@@ -181,6 +181,24 @@ jobs:
           fi
           exit $code
 
+      # The build friends actually install: no Firebase, no account, straight
+      # into a live Home screen. Reuses the Gradle cache from the run above.
+      - name: Build demo APK
+        working-directory: build-app
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.project.kotlin.jvm.target.validation.mode=IGNORE"
+        run: flutter build apk --release --dart-define=DEMO_MODE=true
+
+      - name: Collect demo APK
+        run: cp build-app/build/app/outputs/flutter-apk/app-release.apk pact-demo.apk
+
+      - name: Upload demo APK
+        uses: actions/upload-artifact@v5
+        with:
+          name: pact-demo-apk
+          path: pact-demo.apk
+          retention-days: 30
+
       - name: Annotate build failure
         if: failure()
         run: node scripts/ci/annotate.mjs build build.txt

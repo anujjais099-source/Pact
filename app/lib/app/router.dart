@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
+import '../demo/demo_mode.dart';
 import '../features/auth/claim_username_screen.dart';
 import '../features/auth/sign_in_screen.dart';
 import '../features/auth/sign_up_screen.dart';
@@ -63,6 +64,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// The whole product as a single funnel. Each guard answers exactly one
 /// question, in the order a new user meets them.
 String? _redirect(Ref ref, String location) {
+  // A demo build has no account, so none of the funnel below applies. Land on
+  // Home and allow only the screens that exist without a backend.
+  if (ref.read(demoModeProvider)) {
+    const inDemo = {Routes.home, Routes.checkIn, Routes.partner, Routes.profile};
+    return inDemo.contains(location) ? null : Routes.home;
+  }
+
   final auth = ref.read(authStateProvider);
 
   // 1. Still resolving the session.
