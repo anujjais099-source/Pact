@@ -1,0 +1,140 @@
+rules_version = '2';
+
+// =============================================================================
+// Pact — Firestore Security Rules
+//
+// Philosophy: the client is a *renderer*, not an authority.
+// Every value that can be gamed (streak, reliability, level, check-in status,
+// match assignment) is written exclusively by Cloud Functions via the Admin SDK,
+// which bypasses these rules. Clients get read access scoped to their own data
+// and their active pact, plus a tiny slice of self-service profile writes.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function emailVerified() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
+    function pactData(pactId) {
+      return get(/databases/$(database)/documents/pacts/$(pactId)).data;
+    }
+
+    function isPactMember(pactId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/pacts/$(pactId))
+        && request.auth.uid in pactData(pactId).members;
+    }
+
+    // Fields a user is allowed to change on their own profile document.
+    // Everything else (reliability, streak counters, currentPactId, status,
+    // totals) is server-owned.
+    function onlySelfEditableFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly([
+          'avatarUrl',
+          'goalName',
+          'goalUpdatedAt',
+          'timezone',
+          'reminderHourBucket',
+          'fcmTokens',
+          'notificationsEnabled',
+          'lastActiveAt',
+          'emailVerified',
+          'updatedAt'
+        ]);
+    }
+
+    // ---------- users ----------
+    // A user can only ever read their OWN profile. Partner details are
+    // denormalised into pacts/{pactId}.memberInfo so we never expose a
+    // stranger's document (email, tokens, device data) to the other side.
+    match /users/{uid} {
+      allow get, list: if isSelf(uid);
+
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 3
+        && request.resource.data.username.size() <= 20
+        && request.resource.data.streakSafe == false
+        && request.resource.data.currentPactId == null
+        && request.resource.data.reliability == 100
+        && request.resource.data.totalCheckins == 0
+        && request.resource.data.totalExpected == 0
+        && request.resource.data.missedDays == 0
+        && request.resource.data.totalPacts == 0
+        && request.resource.data.longestStreak == 0;
+
+      allow update: if isSelf(uid) && onlySelfEditableFields();
+      allow delete: if false; // account deletion runs through a Cloud Function
+    }
+
+    // ---------- username registry (uniqueness) ----------
+    // Readable so the sign-up form can show "taken / available" instantly.
+    // Only the Admin SDK claims a name, so two racing sign-ups cannot collide.
+    match /usernames/{usernameLower} {
+      allow get: if signedIn();
+      allow list, write: if false;
+    }
+
+    // ---------- matchmaking queue ----------
+    match /matchQueue/{uid} {
+      allow get: if isSelf(uid);
+      allow list, write: if false; // callable function `requestMatch` owns this
+    }
+
+    // ---------- pacts ----------
+    match /pacts/{pactId} {
+      allow get: if isPactMember(pactId);
+      allow list: if signedIn() && request.auth.uid in resource.data.members;
+      allow write: if false;
+
+      // One document per calendar day of the pact, keyed YYYY-MM-DD in the
+      // pact's timezone. Holds both members' status + proof metadata.
+      match /days/{dayKey} {
+        allow read: if isPactMember(pactId);
+        allow write: if false;
+      }
+
+      // Immutable proof-of-check-in records: {dayKey}__{uid}
+      match /checkins/{checkinId} {
+        allow read: if isPactMember(pactId);
+        allow write: if false;
+      }
+
+      // Append-only audit of level ups / breaks, used by the Home timeline.
+      match /events/{eventId} {
+        allow read: if isPactMember(pactId);
+        allow write: if false;
+      }
+    }
+
+    // ---------- past pacts summary (per user history) ----------
+    match /users/{uid}/pactHistory/{pactId} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+
+    // ---------- remote config-ish public metadata ----------
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Default deny.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

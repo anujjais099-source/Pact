@@ -1,0 +1,59 @@
+name: pact
+description: "Your streak is no longer yours alone."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- Firebase ---
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.4
+  firebase_messaging: ^15.1.3
+  firebase_analytics: ^11.3.3
+  cloud_functions: ^5.1.3
+
+  # --- state + routing ---
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.3.0
+
+  # --- camera-only check-in ---
+  camera: ^0.11.0+2
+  image: ^4.2.0
+
+  # --- time, one shared midnight per pact ---
+  timezone: ^0.9.4
+  flutter_timezone: ^3.0.1
+  intl: ^0.19.0
+
+  # --- misc ---
+  cached_network_image: ^3.4.1
+  flutter_local_notifications: ^17.2.3
+  shared_preferences: ^2.3.2
+  path_provider: ^2.1.4
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#0B0B0F"
+  adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"

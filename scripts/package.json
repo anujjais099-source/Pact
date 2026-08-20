@@ -1,0 +1,9 @@
+{
+  "name": "pact-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Emulator seeding and streak-engine scenarios",
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

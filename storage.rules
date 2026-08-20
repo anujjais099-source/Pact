@@ -1,0 +1,78 @@
+rules_version = '2';
+
+// =============================================================================
+// Pact — Cloud Storage Security Rules
+//
+//   avatars/{uid}/{file}                    owner writes, any signed-in user reads
+//   checkins/{pactId}/{dayKey}/{uid}.jpg    owner writes, the 2 members read
+// =============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/jpe?g')
+          || request.resource.contentType.matches('image/png');
+    }
+
+    function underSizeLimit() {
+      return request.resource.size < 6 * 1024 * 1024; // 6 MB
+    }
+
+    function isPactMember(pactId) {
+      return signedIn()
+        && request.auth.uid in firestore.get(
+             /databases/(default)/documents/pacts/$(pactId)
+           ).data.members;
+    }
+
+    // ---------- avatars ----------
+    match /avatars/{uid}/{fileName} {
+      allow read: if signedIn();
+      allow write: if signedIn()
+        && request.auth.uid == uid
+        && isImage()
+        && underSizeLimit();
+    }
+
+    // ---------- daily check-in proof ----------
+    //
+    // Proof turns immutable the moment the server marks the day green. Until
+    // then re-uploading is allowed on purpose: if the upload lands but the
+    // callable times out, the user has to be able to retry rather than lose the
+    // day to a train tunnel.
+    match /checkins/{pactId}/{dayKey}/{fileName} {
+
+      function dayIsOpen() {
+        return !firestore.exists(
+                 /databases/(default)/documents/pacts/$(pactId)/days/$(dayKey)
+               )
+          || (firestore.get(
+                /databases/(default)/documents/pacts/$(pactId)/days/$(dayKey)
+              ).data.resolved != true
+              && firestore.get(
+                   /databases/(default)/documents/pacts/$(pactId)/days/$(dayKey)
+                 ).data.statuses[request.auth.uid] != 'green');
+      }
+
+      allow read: if isPactMember(pactId);
+
+      // fileName is "{uid}.jpg" — the uploader has to own it.
+      allow write: if isPactMember(pactId)
+        && fileName == request.auth.uid + '.jpg'
+        && isImage()
+        && underSizeLimit()
+        && dayIsOpen();
+
+      allow delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# Copy to android/key.properties (git-ignored) before the first Play upload.
+# Generate the keystore with:
+#   keytool -genkey -v -keystore pact-upload.jks -keyalg RSA -keysize 2048 \
+#           -validity 10000 -alias pact-upload
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=pact-upload
+storeFile=../pact-upload.jks

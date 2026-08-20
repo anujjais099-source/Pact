@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Pact — Your streak is no longer yours alone</title>
+<meta name="description" content="Pact matches you with one stranger. You both check in daily with a live photo. If either misses, the shared streak hits zero. No chat, no feed.">
+
+<meta name="theme-color" content="#E9EBF1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C0D13" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+
+<!-- EDIT: set this to your live URL once Vercel gives you one -->
+<link rel="canonical" href="https://pact.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pact">
+<meta property="og:title" content="Pact — Your streak is no longer yours alone">
+<meta property="og:description" content="One stranger. One photo a day. Miss it, and you both start over.">
+<meta property="og:url" content="https://pact.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pact — Your streak is no longer yours alone">
+<meta name="twitter:description" content="One stranger. One photo a day. Miss it, and you both start over.">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='12' cy='16' r='8' fill='none' stroke='%237C5CFF' stroke-width='3'/><circle cx='20' cy='16' r='8' fill='none' stroke='%233DDC97' stroke-width='3'/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#E9EBF1; --card:#FCFCFE; --card-2:#F2F3F8;
+  --ink:#0E0F16; --ink-2:#43485B; --ink-3:#7B8093;
+  --rule:#C9CDDB; --rule-2:#DDE0EA;
+  --stamp:#5B3FE0; --stamp-soft:#E8E3FF;
+  --good:#0C8F59; --good-soft:#DAF3E8;
+  --bad:#CE2440; --bad-soft:#FBE2E6;
+  --gold:#8A6A12;
+  --grain:rgba(14,15,22,.045);
+  --invert-bg:#0E0F16; --invert-ink:#E9EBF1;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C0D13; --card:#14161F; --card-2:#191B26;
+    --ink:#F0F1F6; --ink-2:#A8ADBD; --ink-3:#6B7083;
+    --rule:#242734; --rule-2:#1D202B;
+    --stamp:#9B85FF; --stamp-soft:#1B1730;
+    --good:#3DDC97; --good-soft:#0F2A20;
+    --bad:#FF5A6E; --bad-soft:#2C1218;
+    --gold:#FFC24D;
+    --grain:rgba(255,255,255,.03);
+    --invert-bg:#161822; --invert-ink:#F0F1F6;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C0D13; --card:#14161F; --card-2:#191B26;
+  --ink:#F0F1F6; --ink-2:#A8ADBD; --ink-3:#6B7083;
+  --rule:#242734; --rule-2:#1D202B;
+  --stamp:#9B85FF; --stamp-soft:#1B1730;
+  --good:#3DDC97; --good-soft:#0F2A20;
+  --bad:#FF5A6E; --bad-soft:#2C1218;
+  --gold:#FFC24D;
+  --grain:rgba(255,255,255,.03);
+  --invert-bg:#161822; --invert-ink:#F0F1F6;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Archivo",system-ui,sans-serif;
+  font-variation-settings:"wdth" 100,"wght" 400;
+  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%}
+::selection{background:var(--stamp); color:#fff}
+
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.sheet{max-width:1080px; margin:0 auto; padding:0 28px}
+.narrow{max-width:660px}
+
+/* ── ruled document header ───────────────────────────────────── */
+.topbar{
+  border-bottom:1px solid var(--rule); background:var(--paper);
+  position:sticky; top:0; z-index:40; backdrop-filter:blur(8px);
+}
+.topbar .sheet{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:18px; height:58px;
+}
+.wordmark{display:flex; align-items:center; gap:9px; font-weight:800;
+  font-variation-settings:"wdth" 112,"wght" 800; letter-spacing:.02em; font-size:17px}
+.wordmark .rings{position:relative; width:26px; height:15px; flex:none}
+.wordmark .rings i{
+  position:absolute; top:0; width:15px; height:15px; border-radius:50%;
+  border:2.5px solid var(--stamp);
+}
+.wordmark .rings i:last-child{left:11px; border-color:var(--good)}
+.topnav{display:flex; align-items:center; gap:22px}
+.topnav a{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.04em;
+  color:var(--ink-2); text-decoration:none;
+}
+.topnav a:hover{color:var(--stamp)}
+@media (max-width:720px){ .topnav a:not(.mini-cta){display:none} }
+.mini-cta{
+  background:var(--stamp); color:#fff !important; padding:8px 14px;
+  border-radius:4px; font-weight:600;
+}
+
+/* ── shared type ─────────────────────────────────────────────── */
+h1,h2,h3{margin:0; text-wrap:balance; letter-spacing:-.02em}
+h1{
+  font-size:clamp(42px,7.4vw,86px); line-height:.94;
+  font-variation-settings:"wdth" 118,"wght" 800; letter-spacing:-.035em;
+}
+h2{
+  font-size:clamp(28px,4vw,44px); line-height:1.04;
+  font-variation-settings:"wdth" 112,"wght" 750; letter-spacing:-.03em;
+}
+h3{font-size:20px; font-variation-settings:"wdth" 105,"wght" 700}
+p{margin:0}
+.lede{font-size:clamp(17px,2.1vw,21px); line-height:1.55; color:var(--ink-2)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3);
+}
+.rule{height:1px; background:var(--rule); border:0; margin:0}
+.rule.thick{height:3px; background:var(--ink)}
+</style>
+<style>
+/* ── hero ────────────────────────────────────────────────────── */
+.hero{padding:clamp(48px,8vw,96px) 0 0; position:relative; overflow:hidden}
+.hero::before{
+  content:""; position:absolute; inset:0;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 33px, var(--grain) 33px 34px);
+  pointer-events:none; mask-image:linear-gradient(to bottom,#000 20%,transparent 92%);
+}
+.hero-grid{
+  position:relative; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+  gap:clamp(32px,5vw,64px); align-items:center;
+}
+@media (max-width:880px){ .hero-grid{grid-template-columns:1fr; gap:38px} }
+.hero h1{margin:18px 0 0}
+.hero .lede{margin-top:22px; max-width:46ch}
+.cta-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:32px; align-items:center}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  padding:16px 26px; border-radius:5px; border:1px solid transparent;
+  font-family:"Archivo",sans-serif; font-size:16px; font-weight:700;
+  font-variation-settings:"wdth" 105,"wght" 700;
+  text-decoration:none; cursor:pointer; transition:transform .12s ease, background .15s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--stamp); outline-offset:3px}
+.btn-primary{background:var(--ink); color:var(--paper)}
+.btn-primary:hover{background:var(--stamp); color:#fff}
+.btn-ghost{background:transparent; color:var(--ink); border-color:var(--rule)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn .sub{display:block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+  letter-spacing:.14em; text-transform:uppercase; opacity:.72; font-weight:500}
+.btn .lines{display:flex; flex-direction:column; align-items:flex-start; line-height:1.25}
+
+/* ── the live streak instrument ──────────────────────────────── */
+.instrument{
+  background:var(--card); border:1px solid var(--rule); border-radius:10px;
+  padding:26px 24px 22px; box-shadow:0 30px 60px -40px rgba(20,18,50,.5);
+  position:relative;
+}
+.instrument .cap{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px}
+.count{
+  font-variation-settings:"wdth" 125,"wght" 800; font-size:clamp(76px,12vw,116px);
+  line-height:.86; letter-spacing:-.055em; font-variant-numeric:tabular-nums;
+  transition:color .3s ease;
+}
+.count.dead{color:var(--bad)}
+.count-sub{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); margin-top:8px}
+.halves{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:22px}
+.half{
+  border:1px solid var(--rule-2); border-radius:6px; padding:11px 12px;
+  background:var(--card-2); transition:border-color .3s ease, background .3s ease;
+}
+.half .who{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); letter-spacing:.06em}
+.half .state{display:flex; align-items:center; gap:7px; margin-top:6px; font-weight:700; font-size:14.5px}
+.half .bead{width:8px; height:8px; border-radius:50%; background:var(--good); flex:none}
+.half.ok .state{color:var(--good)}
+.half.fail{border-color:var(--bad); background:var(--bad-soft)}
+.half.fail .state{color:var(--bad)}
+.half.fail .bead{background:var(--bad)}
+.verdict{
+  margin-top:18px; padding-top:16px; border-top:1px dashed var(--rule);
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-2);
+  min-height:38px; display:flex; align-items:center; gap:9px;
+}
+.verdict.broken{color:var(--bad); font-weight:600}
+.break-btn{
+  margin-top:6px; background:none; border:0; padding:0; cursor:pointer;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3); text-decoration:underline;
+  text-underline-offset:4px;
+}
+.break-btn:hover{color:var(--bad)}
+.break-btn:focus-visible{outline:2px solid var(--stamp); outline-offset:3px}
+
+/* ── stat strip ──────────────────────────────────────────────── */
+.strip{
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  margin-top:clamp(48px,7vw,84px); background:var(--card);
+}
+.strip .sheet{display:grid; grid-template-columns:repeat(4,1fr); gap:0}
+@media (max-width:760px){ .strip .sheet{grid-template-columns:repeat(2,1fr)} }
+.strip .cell{padding:22px 20px 20px; border-left:1px solid var(--rule-2)}
+.strip .cell:first-child{border-left:0}
+@media (max-width:760px){ .strip .cell:nth-child(3){border-left:0} }
+.strip b{
+  display:block; font-size:26px; font-variation-settings:"wdth" 115,"wght" 800;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+}
+.strip span{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3);
+  letter-spacing:.08em; text-transform:uppercase; display:block; margin-top:5px}
+</style>
+<style>
+/* ── clauses ─────────────────────────────────────────────────── */
+.section{padding:clamp(56px,8vw,104px) 0}
+.section-head{max-width:620px; margin-bottom:clamp(32px,5vw,54px)}
+.section-head h2{margin-top:14px}
+.section-head p{margin-top:16px}
+
+.clause{
+  display:grid; grid-template-columns:76px minmax(0,1fr) minmax(0,340px);
+  gap:clamp(18px,3vw,40px); padding:clamp(26px,4vw,38px) 0;
+  border-top:1px solid var(--rule); align-items:start;
+}
+.clause:last-of-type{border-bottom:1px solid var(--rule)}
+@media (max-width:840px){
+  .clause{grid-template-columns:52px minmax(0,1fr); }
+  .clause .exhibit{grid-column:1 / -1; margin-top:6px}
+}
+.clause .no{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  color:var(--stamp); letter-spacing:.06em; padding-top:6px;
+}
+.clause h3{margin-bottom:10px}
+.clause p{color:var(--ink-2); font-size:16.5px}
+.clause .fine{
+  margin-top:12px; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  color:var(--ink-3); line-height:1.6; padding-left:13px; border-left:2px solid var(--rule);
+}
+
+/* exhibits: small honest diagrams, not screenshots */
+.exhibit{
+  background:var(--card); border:1px solid var(--rule); border-radius:8px;
+  padding:16px; font-family:"IBM Plex Mono",monospace; font-size:12px;
+}
+.exhibit .tag{
+  font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); display:block; margin-bottom:12px;
+}
+.pair{display:flex; align-items:center; gap:10px; margin-bottom:9px}
+.pair .nm{color:var(--ink-2); flex:1}
+.tick{
+  display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:3px;
+  font-size:11px; font-weight:600;
+}
+.tick.g{background:var(--good-soft); color:var(--good)}
+.tick.r{background:var(--bad-soft); color:var(--bad)}
+.tick.p{background:var(--card-2); color:var(--ink-3)}
+.result{
+  margin-top:12px; padding-top:11px; border-top:1px dashed var(--rule);
+  color:var(--ink); font-weight:600; font-size:12.5px;
+}
+.ladder{display:flex; flex-direction:column; gap:7px}
+.rung{display:flex; align-items:center; gap:10px; font-size:12px; color:var(--ink-2)}
+.rung .bar{height:6px; border-radius:2px; background:var(--stamp); opacity:.35}
+.rung.top .bar{background:var(--gold); opacity:1}
+.rung.top{color:var(--ink); font-weight:600}
+.days{font-variant-numeric:tabular-nums; color:var(--ink-3); width:52px; flex:none}
+
+/* ── the subtraction list ────────────────────────────────────── */
+.absent{background:var(--invert-bg); color:var(--invert-ink)}
+.absent .eyebrow{color:var(--invert-ink); opacity:.5}
+.absent h2{color:inherit}
+.absent .gone{
+  display:flex; flex-wrap:wrap; gap:10px 12px; margin-top:30px;
+}
+.absent .gone span{
+  font-family:"IBM Plex Mono",monospace; font-size:clamp(14px,2.4vw,19px);
+  padding:8px 14px; border:1px solid currentColor; border-radius:4px;
+  opacity:.42; text-decoration:line-through; text-decoration-thickness:1.5px;
+}
+.absent .kept{
+  margin-top:26px; font-size:clamp(18px,2.6vw,24px);
+  font-variation-settings:"wdth" 110,"wght" 700;
+}
+.absent .kept em{font-style:normal; color:var(--good)}
+
+/* ── audience ────────────────────────────────────────────────── */
+.who-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden}
+.who-cell{background:var(--card); padding:22px 20px}
+.who-cell .k{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--stamp)}
+.who-cell h3{font-size:17px; margin:9px 0 6px}
+.who-cell p{font-size:14.5px; color:var(--ink-2)}
+
+/* ── signature block ─────────────────────────────────────────── */
+.sign{
+  border:2px solid var(--ink); border-radius:10px; padding:clamp(30px,5vw,52px);
+  background:var(--card); position:relative; overflow:hidden;
+}
+.sign::after{
+  content:"UNSIGNED"; position:absolute; right:-34px; top:26px; transform:rotate(24deg);
+  font-family:"IBM Plex Mono",monospace; font-size:13px; letter-spacing:.3em;
+  color:var(--stamp); border:2px solid var(--stamp); padding:7px 40px; opacity:.28;
+}
+.sign h2{max-width:16ch}
+.sign .lede{margin-top:16px; max-width:44ch}
+.sign .ruleline{
+  display:flex; align-items:flex-end; gap:14px; margin-top:36px;
+  border-bottom:1px solid var(--ink); padding-bottom:9px; max-width:420px;
+}
+.sign .ruleline span{font-family:"IBM Plex Mono",monospace; font-size:11px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.status{
+  margin-top:26px; display:flex; align-items:flex-start; gap:10px;
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-2);
+  line-height:1.65; max-width:52ch;
+}
+.status .badge{
+  flex:none; background:var(--stamp-soft); color:var(--stamp); border-radius:3px;
+  padding:3px 8px; font-size:10.5px; letter-spacing:.1em; font-weight:600;
+}
+
+/* ── footer ──────────────────────────────────────────────────── */
+.foot{border-top:1px solid var(--rule); padding:34px 0 46px; margin-top:clamp(48px,7vw,88px)}
+.foot .sheet{display:flex; flex-wrap:wrap; gap:16px 32px; justify-content:space-between;
+  align-items:center; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+.foot a{color:var(--ink-2); text-decoration:none}
+.foot a:hover{color:var(--stamp)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="sheet">
+    <div class="wordmark"><span class="rings"><i></i><i></i></span>Pact</div>
+    <nav class="topnav">
+      <a href="#terms">The terms</a>
+      <a href="#absent">What it isn't</a>
+      <a href="#who">Who it's for</a>
+      <a href="#get" class="mini-cta">Get the app</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="sheet hero-grid">
+    <div>
+      <p class="eyebrow">Accountability · Android</p>
+      <h1>Your streak is no&nbsp;longer yours alone.</h1>
+      <p class="lede">Pact matches you with one stranger. You both commit to a daily goal. You both check in with a live photo. Miss a day — either of you — and the streak goes to zero for both.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#get">
+          <span class="lines"><span class="sub">Android</span><span>Get the app</span></span>
+        </a>
+        <a class="btn btn-ghost" href="#terms">Read the terms</a>
+      </div>
+    </div>
+
+    <div class="instrument" id="meter">
+      <div class="cap">
+        <span class="eyebrow">Shared streak</span>
+        <span class="mono" style="font-size:11.5px;color:var(--ink-3)">DAY 47</span>
+      </div>
+      <div class="count" id="count">47</div>
+      <p class="count-sub" id="countSub">Level 4 · Legendary Pact</p>
+      <div class="halves">
+        <div class="half ok" id="halfA">
+          <span class="who">YOU</span>
+          <span class="state"><i class="bead"></i>Checked in</span>
+        </div>
+        <div class="half ok" id="halfB">
+          <span class="who">PARTNER</span>
+          <span class="state"><i class="bead"></i>Checked in</span>
+        </div>
+      </div>
+      <div class="verdict" id="verdict"><span>✓</span><span>Both showed up. The streak holds.</span></div>
+      <button class="break-btn" id="breakBtn">See what happens when one of you misses</button>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="sheet">
+    <div class="cell"><b>1</b><span>Partner at a time</span></div>
+    <div class="cell"><b>1</b><span>Photo per day</span></div>
+    <div class="cell"><b>0</b><span>Messages, ever</span></div>
+    <div class="cell"><b>0</b><span>Second chances</span></div>
+  </div>
+</div>
+
+<section class="section" id="terms">
+  <div class="sheet">
+    <div class="section-head">
+      <p class="eyebrow">The terms</p>
+      <h2>Five clauses. That's the entire product.</h2>
+      <p class="lede">Habit apps fail because the only person you can disappoint is yourself, and you have a lifetime of practice forgiving that person. Pact hands the cost to somebody else.</p>
+    </div>
+
+    <div class="clause">
+      <span class="no">01</span>
+      <div>
+        <h3>You are matched with a stranger</h3>
+        <p>No friends to invite, no profile to curate, no one to choose. You join a pool and you are paired with one person who also committed to showing up daily. You keep them until the streak breaks.</p>
+        <p class="fine">A stranger is the point. A friend will let you off. Someone who owes you nothing, and is owed nothing back, will not.</p>
+      </div>
+      <div class="exhibit">
+        <span class="tag">Exhibit A · Pairing</span>
+        <div class="pair"><span class="nm">you · Gym</span><span class="tick p">queued</span></div>
+        <div class="pair"><span class="nm">quiet_run · Study</span><span class="tick p">queued</span></div>
+        <div class="result">→ Paired in under 60 seconds</div>
+      </div>
+    </div>
+
+    <div class="clause">
+      <span class="no">02</span>
+      <div>
+        <h3>You check in with a live photo</h3>
+        <p>The camera opens straight to a live frame. There is no gallery button, no upload, no way to submit yesterday's picture. Proof, not promises.</p>
+        <p class="fine">Enforced at the source: the photo library is not wired into the app at all, so no future update can quietly soften this.</p>
+      </div>
+      <div class="exhibit">
+        <span class="tag">Exhibit B · Proof</span>
+        <div class="pair"><span class="nm">Live camera</span><span class="tick g">allowed</span></div>
+        <div class="pair"><span class="nm">Gallery upload</span><span class="tick r">blocked</span></div>
+        <div class="pair"><span class="nm">Editing yesterday</span><span class="tick r">blocked</span></div>
+        <div class="result">→ One frame, timestamped, immutable</div>
+      </div>
+    </div>
+
+    <div class="clause">
+      <span class="no">03</span>
+      <div>
+        <h3>Both of you, or neither</h3>
+        <p>The streak only advances when the second person checks in. If either of you misses the deadline, it drops to zero — for both. There is no freeze, no repair, no paying it back tomorrow.</p>
+        <p class="fine">You will lose a streak because of someone else. That is not a flaw in the design; it is the design. It is also what makes you open the app at 11pm.</p>
+      </div>
+      <div class="exhibit">
+        <span class="tag">Exhibit C · Judgement</span>
+        <div class="pair"><span class="nm">you</span><span class="tick g">green</span></div>
+        <div class="pair"><span class="nm">quiet_run</span><span class="tick r">missed</span></div>
+        <div class="result" style="color:var(--bad)">→ Streak 47 → 0. Both of you.</div>
+      </div>
+    </div>
+
+    <div class="clause">
+      <span class="no">04</span>
+      <div>
+        <h3>The pact levels up as you hold it</h3>
+        <p>Days accumulate into something with a name. A Legendary Pact is thirty-one consecutive days in which neither of two strangers blinked — and everyone who has one knows exactly what it cost.</p>
+      </div>
+      <div class="exhibit">
+        <span class="tag">Exhibit D · Levels</span>
+        <div class="ladder">
+          <div class="rung"><span class="days">1–7</span><span class="bar" style="width:22%"></span>Level 1</div>
+          <div class="rung"><span class="days">8–14</span><span class="bar" style="width:38%"></span>Level 2</div>
+          <div class="rung"><span class="days">15–30</span><span class="bar" style="width:62%"></span>Level 3</div>
+          <div class="rung top"><span class="days">31+</span><span class="bar" style="width:92%"></span>Legendary</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clause">
+      <span class="no">05</span>
+      <div>
+        <h3>Your reliability follows you</h3>
+        <p>Every check-in and every miss is counted for life. When you are matched again, the stranger sees one number: the percentage of days you have actually shown up. It is the only thing anyone ever learns about you here.</p>
+        <p class="fine">Reliability = check-ins ÷ days you were in a pact. It survives every break, which is why it is worth protecting.</p>
+      </div>
+      <div class="exhibit">
+        <span class="tag">Exhibit E · Reputation</span>
+        <div class="pair"><span class="nm">Check-ins</span><span class="mono">58</span></div>
+        <div class="pair"><span class="nm">Days in a pact</span><span class="mono">63</span></div>
+        <div class="result">→ Reliability 92%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section absent" id="absent">
+  <div class="sheet narrow">
+    <p class="eyebrow">Clause 06 · Omissions</p>
+    <h2>Everything we left out, on purpose.</h2>
+    <div class="gone">
+      <span>chat</span><span>followers</span><span>likes</span><span>comments</span>
+      <span>reactions</span><span>a feed</span><span>friend requests</span>
+      <span>leaderboards</span><span>streak freezes</span><span>ads</span>
+    </div>
+    <p class="kept">What's left is one person who will find out, tomorrow morning, <em>whether you showed up</em>.</p>
+  </div>
+</section>
+
+<section class="section" id="who">
+  <div class="sheet">
+    <div class="section-head">
+      <p class="eyebrow">Clause 07 · Parties</p>
+      <h2>Built for people with something at stake in eight weeks.</h2>
+    </div>
+    <div class="who-grid">
+      <div class="who-cell">
+        <span class="k">Exams</span>
+        <h3>Students revising</h3>
+        <p>The syllabus does not care that you were tired. Neither does the person waiting on your photo.</p>
+      </div>
+      <div class="who-cell">
+        <span class="k">Training</span>
+        <h3>Gym in month two</h3>
+        <p>Month one runs on novelty. Month two runs on not being the reason someone else lost forty days.</p>
+      </div>
+      <div class="who-cell">
+        <span class="k">Practice</span>
+        <h3>Anything daily</h3>
+        <p>Reading, meditation, running, an instrument. If it can be photographed, it can be held to.</p>
+      </div>
+      <div class="who-cell">
+        <span class="k">Work</span>
+        <h3>Professionals</h3>
+        <p>The habit you keep postponing until the quarter calms down. It will not calm down.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="get">
+  <div class="sheet">
+    <div class="sign">
+      <p class="eyebrow">Clause 08 · Execution</p>
+      <h2>Sign it, and someone you have never met starts counting on you tomorrow.</h2>
+      <p class="lede">Android first. Free. You need an email address, a goal you can do in ten minutes, and a phone with a camera.</p>
+
+      <div class="cta-row">
+        <a class="btn btn-primary" id="downloadBtn" href="#get" rel="noopener">
+          <span class="lines"><span class="sub" id="ctaSub">Android</span><span id="ctaLabel">Get the app</span></span>
+        </a>
+        <a class="btn btn-ghost" href="#terms">Re-read the terms</a>
+      </div>
+
+      <div class="ruleline">
+        <span>Signature</span>
+      </div>
+
+      <div class="status" id="preLaunch">
+        <span class="badge">SOON</span>
+        <span>Pact launches on Android. Leave your email and you get the link the day it goes live — nothing else, ever.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="sheet">
+    <span>Pact · v1.0.0 · Android</span>
+    <span>Your streak is no longer yours alone.</span>
+    <span><a href="#terms">Terms</a> · <a href="#get">Download</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const count   = document.getElementById('count');
+  const sub     = document.getElementById('countSub');
+  const halfB   = document.getElementById('halfB');
+  const verdict = document.getElementById('verdict');
+  const btn     = document.getElementById('breakBtn');
+  const reduce  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let broken = false;
+
+  function setHalf(el, ok, who, text) {
+    el.className = 'half ' + (ok ? 'ok' : 'fail');
+    el.innerHTML = '<span class="who">' + who + '</span>' +
+      '<span class="state"><i class="bead"></i>' + text + '</span>';
+  }
+
+  function restore() {
+    broken = false;
+    count.textContent = '47';
+    count.classList.remove('dead');
+    sub.textContent = 'Level 4 · Legendary Pact';
+    setHalf(halfB, true, 'PARTNER', 'Checked in');
+    verdict.className = 'verdict';
+    verdict.innerHTML = '<span>✓</span><span>Both showed up. The streak holds.</span>';
+    btn.textContent = 'See what happens when one of you misses';
+  }
+
+  // Count down rather than cut to zero — the loss should be felt, not stated.
+  function fall(from) {
+    if (reduce) { count.textContent = '0'; return; }
+    let n = from;
+    const step = () => {
+      n -= Math.max(1, Math.round(n / 6));
+      if (n <= 0) { count.textContent = '0'; return; }
+      count.textContent = n;
+      setTimeout(step, 55);
+    };
+    step();
+  }
+
+  btn.addEventListener('click', () => {
+    if (broken) { restore(); return; }
+    broken = true;
+    setHalf(halfB, false, 'PARTNER', 'Missed the deadline');
+    count.classList.add('dead');
+    sub.textContent = 'Level 1 · starting over';
+    verdict.className = 'verdict broken';
+    verdict.innerHTML = '<span>✕</span><span>Your Pact has been broken.</span>';
+    btn.textContent = 'Put it back';
+    fall(47);
+  });
+})();
+</script>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   THE ONLY TWO LINES YOU NEED TO EDIT
+
+   PLAY_URL      empty  -> the button collects launch-day emails
+                 filled -> the button becomes a real Play Store download
+   NOTIFY_EMAIL  where those launch-day emails should land
+   ───────────────────────────────────────────────────────────── */
+const PLAY_URL     = "";
+const NOTIFY_EMAIL = "you@example.com";
+
+(function () {
+  const btn   = document.getElementById('downloadBtn');
+  const label = document.getElementById('ctaLabel');
+  const sub   = document.getElementById('ctaSub');
+  const soon  = document.getElementById('preLaunch');
+
+  if (PLAY_URL) {
+    btn.href = PLAY_URL;
+    btn.target = '_blank';
+    sub.textContent = 'Android · Free';
+    label.textContent = 'Download on Google Play';
+    if (soon) soon.hidden = true;
+  } else {
+    btn.href = 'mailto:' + NOTIFY_EMAIL +
+      '?subject=' + encodeURIComponent('Send me Pact when it launches');
+    sub.textContent = 'Android · Launching soon';
+    label.textContent = 'Get the launch link';
+  }
+})();
+</script>
+</body>
+</html>
