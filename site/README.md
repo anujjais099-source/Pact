@@ -3,7 +3,15 @@
 A single static page. No build step, no framework, no dependencies — one
 `index.html` with inlined CSS and ~40 lines of JS. Vercel serves it as-is.
 
-## Deploy (free, no domain purchase)
+## Live at
+
+**https://www.pactly.in** — apex `pactly.in` 308-redirects to it, which is
+Vercel's default when www is the primary domain. Flip that in
+**Vercel → Settings → Domains** if you would rather the bare domain be primary;
+if you do, update the canonical link, `og:url`, `sitemap.xml` and
+`robots.txt` to match, or search engines will index one and rank the other.
+
+## Deploy
 
 You get a free `*.vercel.app` address. Two ways in; the first needs nothing but
 this folder.

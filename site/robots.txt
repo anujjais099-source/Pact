@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Update the host once Vercel assigns your URL.
-Sitemap: https://pact.vercel.app/sitemap.xml
+Sitemap: https://www.pactly.in/sitemap.xml
