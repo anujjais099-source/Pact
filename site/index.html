@@ -639,11 +639,12 @@ p{margin:0}
 
    1. PLAY_URL  — set this once Pact is on Google Play.  Wins over everything.
    2. APK_URL   — direct download while you are still testing with friends.
-                  Drop the file at site/pact.apk and set this to "/pact.apk".
+                  Points at the newest GitHub Release asset, which needs no
+                  account and always serves the latest tagged build.
    3. neither   — the button collects launch-day emails instead.
    ═════════════════════════════════════════════════════════════ */
 const PLAY_URL     = "";
-const APK_URL      = "";
+const APK_URL      = "https://github.com/anujjais099-source/Pact/releases/latest/download/pact-demo.apk";
 const NOTIFY_EMAIL = "anujjais099@gmail.com";
 
 (function () {
@@ -668,7 +669,7 @@ const NOTIFY_EMAIL = "anujjais099@gmail.com";
   } else if (APK_URL) {
     // Sideloading is a real step people get stuck on. Say it before they hit it.
     btn.href = APK_URL;
-    btn.setAttribute("download", "pact.apk");
+    btn.rel = "noopener";
     sub.textContent = "Android · Direct download";
     label.textContent = "Download the APK";
     setNote("BETA",

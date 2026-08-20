@@ -17,6 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write   # required to publish a Release on a v* tag
 
     steps:
       - uses: actions/checkout@v5
@@ -225,9 +227,25 @@ jobs:
           path: pact.apk
           retention-days: 30
 
-      - name: Attach to release
+      # A tagged release is the only download link that works for someone
+      # without a GitHub account. Artifacts require a login; release assets do
+      # not, and releases/latest/download is a stable URL the site can hard-code.
+      - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: pact.apk
+          files: |
+            pact-demo.apk
+            pact.apk
           generate_release_notes: true
+          body: |
+            ## Pact - Android
+
+            **pact-demo.apk** - install this one. No account, no internet, no
+            setup: it opens straight onto a live Home screen with a partner and
+            an eleven-day streak, and the camera check-in works. Android will
+            warn about installing from an unknown source; tap **More details ->
+            Install anyway**.
+
+            **pact.apk** - the real build. Needs a Firebase project behind it
+            and cannot sign in without one.
