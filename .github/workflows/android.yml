@@ -119,6 +119,16 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit $code
 
+      # Every Dart error becomes an annotation on the run, with file and line,
+      # so failures are readable without opening a single log.
+      - name: Annotate analysis
+        if: always()
+        run: node scripts/ci/annotate.mjs analyze analyze.txt
+
+      - name: Annotate test failures
+        if: always()
+        run: node scripts/ci/annotate.mjs test test.txt
+
       - name: Build release APK
         working-directory: app
         run: |
