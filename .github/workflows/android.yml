@@ -39,7 +39,7 @@ jobs:
         run: flutter --version
 
       - name: Create a fresh Flutter project
-        run: flutter create --platforms=android --org com.pactapp --project-name pact build-app
+        run: flutter create --platforms=android --org com.pactly --project-name pactly build-app
 
       - name: Copy Pact source into it
         run: |
@@ -98,7 +98,7 @@ jobs:
               {
                 "client_info": {
                   "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
-                  "android_client_info": { "package_name": "com.pactapp.pact" }
+                  "android_client_info": { "package_name": "com.pactly.android" }
                 },
                 "oauth_client": [],
                 "api_key": [ { "current_key": "PLACEHOLDER_API_KEY_NOT_FUNCTIONAL" } ],

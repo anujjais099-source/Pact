@@ -14,7 +14,7 @@ import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatf
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError('Pact ships Android first. Web is not configured.');
+      throw UnsupportedError('Pactly ships Android first. Web is not configured.');
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:

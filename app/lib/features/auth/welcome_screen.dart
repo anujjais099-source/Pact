@@ -32,7 +32,7 @@ class WelcomeScreen extends StatelessWidget {
           Text('Your streak is\nno longer\nyours alone.', style: t.displayMedium),
           Gap.h16,
           Text(
-            'Pact pairs you with one stranger. You both show up, every day, or you both start over.',
+            'Pactly pairs you with one stranger. You both show up, every day, or you both start over.',
             style: t.bodyMedium?.copyWith(fontSize: 15, height: 1.5),
           ),
           const Spacer(),

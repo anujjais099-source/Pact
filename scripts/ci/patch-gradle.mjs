@@ -138,6 +138,21 @@ edit('app/build.gradle.kts', 'R8 shrinking disabled', (s) => {
   );
 });
 
+// ── app/build.gradle.kts — the permanent Play identity ──────────────────────
+// flutter create derives com.pactly.pactly from --org plus --project-name.
+// applicationId is what Google Play locks forever and can never be changed
+// after the first upload, so it gets a deliberate value. namespace is left
+// alone: it only governs the R class and MainActivity's package.
+edit('app/build.gradle.kts', 'applicationId com.pactly.android', (s) => {
+  if (s.includes('com.pactly.android')) return s;
+  const anchor = /applicationId = "[^"]+"/;
+  if (!anchor.test(s)) {
+    problems.push('app/build.gradle.kts: applicationId line not found');
+    return null;
+  }
+  return s.replace(anchor, 'applicationId = "com.pactly.android"');
+});
+
 // ── gradle.properties — stop the JVM-target mismatch failing the build ──────
 // AGP now compiles library Java at 11, while plugins such as flutter_timezone,
 // cloud_functions and camera_android_camerax still declare Kotlin jvmTarget

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pact/core/utils/validators.dart';
+import 'package:pactly/core/utils/validators.dart';
 
 void main() {
   test('usernames match the server regex', () {

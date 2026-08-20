@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pact/data/models/pact_level.dart';
+import 'package:pactly/data/models/pact_level.dart';
 
 /// These bands are duplicated in functions/src/levels.ts. If this test and that
 /// file ever disagree, the app lies to the user about their own progress.

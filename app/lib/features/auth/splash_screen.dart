@@ -17,7 +17,7 @@ class SplashScreen extends StatelessWidget {
           children: [
             const PactMark(size: 64),
             const SizedBox(height: 20),
-            Text('PACT', style: Theme.of(context).textTheme.titleLarge?.copyWith(letterSpacing: 6)),
+            Text('PACTLY', style: Theme.of(context).textTheme.titleLarge?.copyWith(letterSpacing: 6)),
             const SizedBox(height: 8),
             const Text(
               'Your streak is no longer yours alone.',

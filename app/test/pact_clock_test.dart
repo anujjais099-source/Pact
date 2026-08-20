@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pact/core/utils/pact_clock.dart';
+import 'package:pactly/core/utils/pact_clock.dart';
 
 /// The whole product rests on both partners agreeing what "today" is. These
 /// assertions mirror functions/src/time.ts.

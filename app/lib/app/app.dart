@@ -54,7 +54,7 @@ class _PactAppState extends ConsumerState<PactApp> {
 
   Widget _app(BuildContext context) {
     return MaterialApp.router(
-      title: 'Pact',
+      title: 'Pactly',
       debugShowCheckedModeBanner: false,
       theme: PactTheme.build(),
       routerConfig: ref.watch(routerProvider),

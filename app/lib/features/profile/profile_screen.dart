@@ -148,7 +148,7 @@ class ProfileScreen extends ConsumerWidget {
           Gap.h16,
           Center(
             child: Text(
-              'Pact · v1.0.0',
+              'Pactly · v1.0.0',
               style: t.bodyMedium?.copyWith(fontSize: 11.5, color: PactColors.textTertiary),
             ),
           ),

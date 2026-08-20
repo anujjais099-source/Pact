@@ -1,8 +1,8 @@
-# Pact
+# Pactly
 
 **Your streak is no longer yours alone.**
 
-Pact pairs you with one stranger. You both commit to a daily goal, you both
+Pactly pairs you with one stranger. You both commit to a daily goal, you both
 check in with a live photo, and the streak belongs to the two of you. One missed
 day and it is gone — for both of you. No chat, no followers, no feed.
 

@@ -100,7 +100,7 @@ class MatchScreen extends ConsumerWidget {
                 Gap.w12,
                 Expanded(
                   child: Text(
-                    'You cannot message, follow or react. Pact is accountability, '
+                    'You cannot message, follow or react. Pactly is accountability, '
                     'not another feed. You stay together until the streak breaks.',
                     style: t.bodyMedium?.copyWith(fontSize: 13, height: 1.5),
                   ),

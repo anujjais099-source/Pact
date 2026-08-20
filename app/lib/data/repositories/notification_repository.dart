@@ -11,7 +11,7 @@ import 'user_repository.dart';
 /// Must match the channelId the Cloud Functions send on.
 const AndroidNotificationChannel pactChannel = AndroidNotificationChannel(
   'pact_reminders',
-  'Pact reminders',
+  'Pactly reminders',
   description: 'Daily check-in nudges and streak alerts.',
   importance: Importance.high,
 );

@@ -97,7 +97,7 @@ class _CameraScreenState extends ConsumerState<CameraScreen>
   String _readable(CameraException e) => switch (e.code) {
         'CameraAccessDenied' ||
         'CameraAccessDeniedWithoutPrompt' =>
-          'Pact needs the camera. Enable it in Settings to check in.',
+          'Pactly needs the camera. Enable it in Settings to check in.',
         'CameraAccessRestricted' => 'Camera access is restricted on this device.',
         _ => e.description ?? 'The camera would not open.',
       };

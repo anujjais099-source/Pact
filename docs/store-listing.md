@@ -11,14 +11,14 @@ ratings, no testimonials.
 ### App name — limit 30
 
 ```
-Pact: Accountability Partner
+Pactly: Accountability Partner
 ```
 
 Alternates, if that is taken:
 
 ```
-Pact — Shared Daily Streak
-Pact: Daily Habit Partner
+Pactly — Shared Daily Streak
+Pactly: Daily Habit Partner
 ```
 
 ### Short description — limit 80
@@ -42,7 +42,7 @@ Your streak is no longer yours alone. Daily photo check-ins with one stranger.
 ```
 Your streak is no longer yours alone.
 
-Pact matches you with one stranger. You both commit to a daily goal. You both
+Pactly matches you with one stranger. You both commit to a daily goal. You both
 check in every day with a live photo. If either of you misses the deadline, the
 shared streak drops to zero — for both of you.
 
@@ -80,7 +80,7 @@ Every check-in and every miss is counted for life. When you are matched again,
 your next partner sees one number: the percentage of days you actually showed
 up. It survives every broken streak, which is why it is worth protecting.
 
-WHAT PACT DOES NOT HAVE
+WHAT PACTLY DOES NOT HAVE
 
 No chat. No followers. No likes, comments or reactions. No feed to scroll. No
 friend requests. No leaderboards. No streak freezes. No ads.
@@ -110,7 +110,7 @@ Free. No subscription.
 Already set in `site/index.html`:
 
 ```
-Pact matches you with one stranger. You both check in daily with a live photo.
+Pactly matches you with one stranger. You both check in daily with a live photo.
 If either misses, the shared streak hits zero. No chat, no feed.
 ```
 
@@ -125,7 +125,7 @@ One stranger. One photo a day. Miss it, and you both start over.
 ## GitHub repository description — limit 350
 
 ```
-Pact — an accountability app where your streak is shared with a stranger. Miss a day and you both lose it. Flutter + Firebase, server-authoritative streak engine.
+Pactly — an accountability app where your streak is shared with a stranger. Miss a day and you both lose it. Flutter + Firebase, server-authoritative streak engine.
 ```
 
 Suggested topics: `flutter` `firebase` `accountability` `habit-tracker`
@@ -139,5 +139,5 @@ Vercel does not ask for a description during `npx vercel`. If you add one later
 in Project Settings, use:
 
 ```
-Marketing site for Pact, an accountability app built on shared streaks.
+Marketing site for Pactly, an accountability app built on shared streaks.
 ```
