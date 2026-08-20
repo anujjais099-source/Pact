@@ -1,0 +1,111 @@
+/**
+ * Pact needs four things the stock Flutter Android template does not provide:
+ *
+ *   1. the google-services plugin        (Firebase)
+ *   2. minSdk 23                         (Firebase Auth floor)
+ *   3. core library desugaring           (flutter_local_notifications)
+ *   4. release signing from key.properties, falling back to debug keys
+ *
+ * Rather than committing a whole Gradle config that goes stale every time AGP
+ * or Flutter moves — which is exactly how this build broke — we let
+ * `flutter create` emit the current template and apply only these deltas.
+ *
+ * Idempotent: safe to run twice. Loud: if an anchor is missing it says which,
+ * instead of producing a subtly broken build file.
+ *
+ *   node scripts/ci/patch-gradle.mjs app/android
+ */
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+const root = process.argv[2] ?? 'app/android';
+const GOOGLE_SERVICES = '4.4.2';
+const DESUGAR = '2.1.4';
+const MIN_SDK = 23;
+
+let changed = 0;
+const problems = [];
+
+function edit(file, label, fn) {
+  const path = join(root, file);
+  if (!existsSync(path)) {
+    problems.push(`${file} does not exist — did flutter create run?`);
+    return;
+  }
+  const before = readFileSync(path, 'utf8');
+  const after = fn(before);
+  if (after === null) return;
+  if (after === before) {
+    console.log(`  = ${file}: ${label} already applied`);
+    return;
+  }
+  writeFileSync(path, after);
+  console.log(`  + ${file}: ${label}`);
+  changed++;
+}
+
+// ── settings.gradle.kts — declare the google-services plugin ────────────────
+edit('settings.gradle.kts', `google-services ${GOOGLE_SERVICES} declared`, (s) => {
+  if (s.includes('com.google.gms.google-services')) return s;
+  const anchor = /(id\("org\.jetbrains\.kotlin\.android"\)\s+version\s+"[^"]+"\s+apply\s+false)/;
+  if (!anchor.test(s)) {
+    problems.push('settings.gradle.kts: kotlin.android plugin line not found');
+    return null;
+  }
+  return s.replace(
+    anchor,
+    `$1\n    id("com.google.gms.google-services") version "${GOOGLE_SERVICES}" apply false`
+  );
+});
+
+// ── app/build.gradle.kts ────────────────────────────────────────────────────
+edit('app/build.gradle.kts', 'google-services applied', (s) => {
+  if (/id\("com\.google\.gms\.google-services"\)/.test(s)) return s;
+  const anchor = /(id\("dev\.flutter\.flutter-gradle-plugin"\))/;
+  if (!anchor.test(s)) {
+    problems.push('app/build.gradle.kts: flutter-gradle-plugin line not found');
+    return null;
+  }
+  return s.replace(anchor, `$1\n    id("com.google.gms.google-services")`);
+});
+
+edit('app/build.gradle.kts', `minSdk ${MIN_SDK}`, (s) => {
+  if (s.includes(`minSdk = ${MIN_SDK}`)) return s;
+  if (!/minSdk\s*=\s*flutter\.minSdkVersion/.test(s)) {
+    problems.push('app/build.gradle.kts: minSdk line not found');
+    return null;
+  }
+  return s.replace(
+    /minSdk\s*=\s*flutter\.minSdkVersion/,
+    `minSdk = ${MIN_SDK}   // Firebase Auth floor, above Flutter's default`
+  );
+});
+
+edit('app/build.gradle.kts', 'core library desugaring', (s) => {
+  let out = s;
+  if (!out.includes('isCoreLibraryDesugaringEnabled')) {
+    const anchor = /(compileOptions\s*\{)/;
+    if (!anchor.test(out)) {
+      problems.push('app/build.gradle.kts: compileOptions block not found');
+      return null;
+    }
+    out = out.replace(
+      anchor,
+      `$1\n        // flutter_local_notifications schedules on APIs older than 26.\n        isCoreLibraryDesugaringEnabled = true`
+    );
+  }
+  if (!out.includes('coreLibraryDesugaring(')) {
+    out = out.trimEnd() +
+      `\n\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${DESUGAR}")\n}\n`;
+  }
+  return out;
+});
+
+// ── report ──────────────────────────────────────────────────────────────────
+console.log(`\npatch-gradle: ${changed} edit(s) applied.`);
+
+if (problems.length) {
+  for (const p of problems) console.log(`::error title=patch-gradle::${p}`);
+  console.error('\nThe Flutter Android template changed shape. Fix the anchors above.');
+  process.exit(1);
+}

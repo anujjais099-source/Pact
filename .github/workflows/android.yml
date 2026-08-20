@@ -34,16 +34,22 @@ jobs:
       # Fills in gradlew, launcher icons and any platform scaffolding that is
       # not committed. It never overwrites files that already exist, so our
       # manifest, gradle config and MainActivity survive untouched.
-      # Fills in gradlew and the wrapper jar. It also drops Kotlin-DSL twins
-      # (build.gradle.kts, settings.gradle.kts) next to our Groovy files, which
-      # Gradle then reports as ambiguous — so remove them and keep one DSL.
-      - name: Complete the Android scaffold
+      # Gradle config is generated, not committed. Pinning AGP/Gradle by hand is
+      # what broke this build twice: the pins fall behind whatever Flutter
+      # stable now requires. Let the template be current, then apply only the
+      # four deltas Pact needs.
+      - name: Generate the Android scaffold
         working-directory: app
+        run: flutter create --platforms=android --org com.pactapp --project-name pact .
+
+      - name: Apply Pact Gradle config
+        run: node scripts/ci/patch-gradle.mjs app/android
+
+      - name: Show resolved toolchain
+        working-directory: app/android
         run: |
-          flutter create --platforms=android --org com.pactapp --project-name pact .
-          find android -name "*.gradle.kts" -print -delete
-          echo "--- gradle wrapper ---"
-          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties
+          grep distributionUrl gradle/wrapper/gradle-wrapper.properties
+          grep -E "com.android.application|kotlin.android|google-services" settings.gradle.kts
 
       # google-services.json is git-ignored (it belongs to your Firebase
       # project). Use the real one if you have added it as a secret, otherwise

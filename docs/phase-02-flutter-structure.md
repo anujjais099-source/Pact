@@ -57,6 +57,28 @@ app/lib/
     └── pact_memory.dart           remembers a pact that just broke
 ```
 
+## Why the Gradle files are not committed
+
+`android/` holds only what is genuinely ours: the manifest, `MainActivity.kt`,
+resources, ProGuard rules. Every `.gradle` file is generated.
+
+Hand-pinning AGP, Kotlin and the Gradle wrapper broke the build twice — first on
+"Gradle 8.9.0 is lower than Flutter's minimum of 8.14.0", then on AGP 9 refusing
+to read the old Groovy DSL at all. Pinned versions do not stay correct; they
+only stay pinned.
+
+So CI runs `flutter create` to emit the current template, then
+`scripts/ci/patch-gradle.mjs` applies the four deltas Pact actually needs:
+
+1. the `google-services` plugin, for Firebase
+2. `minSdk 23`, the Firebase Auth floor
+3. core library desugaring, required by `flutter_local_notifications`
+4. release signing from `key.properties` when present
+
+The patcher is idempotent and fails loudly with the exact missing anchor if the
+Flutter template ever changes shape, rather than emitting a subtly broken build
+file. Run it locally the same way: `node scripts/ci/patch-gradle.mjs app/android`.
+
 ## The three rules the structure enforces
 
 1. **Screens never touch Firebase.** They read providers; providers read
