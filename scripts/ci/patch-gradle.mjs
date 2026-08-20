@@ -125,18 +125,28 @@ edit('app/build.gradle.kts', 'core library desugaring', (s) => {
 // 1.8. Kotlin 2.x treats that pairing as a hard error. We cannot edit those
 // plugins, and the mixed bytecode dexes correctly, so demote the check to a
 // warning — the documented escape hatch for exactly this situation.
-edit('gradle.properties', 'JVM target validation set to warning', (s) => {
+edit('gradle.properties', 'JVM target validation disabled', (s) => {
   if (s.includes('kotlin.jvm.target.validation.mode')) return s;
   return (
     s.trimEnd() +
     '\n\n# Plugins still on Kotlin jvmTarget 1.8 vs AGP\'s Java 11. Mixed targets\n' +
     '# dex fine; the strict check is what breaks the build.\n' +
-    'kotlin.jvm.target.validation.mode=warning\n'
+    'kotlin.jvm.target.validation.mode=IGNORE\n'
   );
 });
 
 // ── report ──────────────────────────────────────────────────────────────────
 console.log(`\npatch-gradle: ${changed} edit(s) applied.`);
+
+// Print what we actually produced. A silently-unapplied edit was worth one
+// wasted round trip; it is not worth two.
+for (const f of ['gradle.properties', 'settings.gradle.kts']) {
+  const fp = join(root, f);
+  if (existsSync(fp)) {
+    console.log(`\n----- ${f} -----`);
+    console.log(readFileSync(fp, 'utf8').trim());
+  }
+}
 
 if (problems.length) {
   for (const p of problems) console.log(`::error title=patch-gradle::${p}`);

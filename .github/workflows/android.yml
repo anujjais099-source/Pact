@@ -145,6 +145,12 @@ jobs:
       # error should fail immediately rather than three times slowly.
       - name: Build release APK
         working-directory: app
+        env:
+          # Gradle maps -Dorg.gradle.project.X to project property X. Belt and
+          # braces alongside gradle.properties: the file edit alone did not take
+          # effect, and this route does not depend on Flutter leaving the file
+          # alone during its own build-time migration.
+          GRADLE_OPTS: "-Dorg.gradle.project.kotlin.jvm.target.validation.mode=IGNORE"
         run: |
           set +e
           code=1
