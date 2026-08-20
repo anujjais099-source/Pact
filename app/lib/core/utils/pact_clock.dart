@@ -18,7 +18,12 @@ abstract final class PactClock {
   /// and used as the pact zone for whoever was waiting first.
   static Future<String> deviceTimezone() async {
     try {
-      return await FlutterTimezone.getLocalTimezone();
+      // flutter_timezone 5.x returns a TimezoneInfo; earlier versions returned
+      // the IANA name directly. Accept either shape, so a plugin bump cannot
+      // break the one thing a pact must never get wrong: which day it is.
+      final dynamic zone = await FlutterTimezone.getLocalTimezone();
+      if (zone is String) return zone;
+      return zone.identifier as String;
     } catch (_) {
       return 'UTC';
     }

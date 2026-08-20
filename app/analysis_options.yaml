@@ -11,3 +11,7 @@ linter:
 analyzer:
   errors:
     invalid_annotation_target: ignore
+    # Dart 3.7 allows a bare _ for every unused parameter. Adopting that would
+    # mean the code no longer builds on the SDK pubspec declares, and these are
+    # 26 lines of noise in a log we read to find real errors.
+    unnecessary_underscores: ignore

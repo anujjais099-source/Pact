@@ -66,7 +66,7 @@ jobs:
             firebase_messaging firebase_analytics cloud_functions \
             'flutter_riverpod:^2.6.1' go_router camera image \
             timezone flutter_timezone intl cached_network_image \
-            flutter_local_notifications shared_preferences path_provider
+            'flutter_local_notifications:^17.2.3' shared_preferences path_provider
           flutter pub add --dev flutter_lints
           echo "--- resolved versions ---"
           grep -A 40 '^dependencies:' pubspec.yaml
