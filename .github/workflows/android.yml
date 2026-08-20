@@ -157,6 +157,12 @@ jobs:
           fi
           exit $code
 
+      # Whatever failed, put the reason in the Annotations box — that is the
+      # one place the failure is visible without opening a log.
+      - name: Annotate build failure
+        if: failure()
+        run: node scripts/ci/annotate.mjs build build.txt
+
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v5

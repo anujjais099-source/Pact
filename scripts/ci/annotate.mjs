@@ -75,5 +75,44 @@ function annotateTest(out) {
   return shown;
 }
 
-const failures = mode === 'analyze' ? annotateAnalyze(text) : annotateTest(text);
+function annotateBuild(out) {
+  const lines = out.split('\n');
+  let shown = 0;
+
+  // Gradle buries the useful part between "What went wrong" and "Try:".
+  const start = lines.findIndex((l) => l.includes('* What went wrong:'));
+  if (start > -1) {
+    let end = lines.findIndex((l, i) => i > start && l.startsWith('* Try:'));
+    if (end < 0) end = Math.min(start + 25, lines.length);
+    const reason = lines.slice(start + 1, end).filter((l) => l.trim()).join('\n');
+    console.log(`::error title=Gradle failure::${esc(reason)}`);
+    shown++;
+  }
+
+  // Anything Flutter itself refused to do.
+  for (const l of lines) {
+    if (shown >= CAP) break;
+    const t = l.trim();
+    if (/^(Error|Exception):/.test(t)) {
+      console.log(`::error title=build::${esc(t)}`);
+      shown++;
+    }
+  }
+
+  // Never leave the run without a readable reason.
+  if (shown === 0) {
+    const tail = lines.filter((l) => l.trim()).slice(-25).join('\n');
+    console.log(`::error title=build failed::${esc(tail)}`);
+    shown++;
+  }
+  return shown;
+}
+
+const runners = { analyze: annotateAnalyze, test: annotateTest, build: annotateBuild };
+const runner = runners[mode];
+if (!runner) {
+  console.error(`unknown mode: ${mode} (expected analyze, test or build)`);
+  process.exit(2);
+}
+const failures = runner(text);
 console.log(`annotate: ${mode} produced ${failures} error annotation(s)`);
