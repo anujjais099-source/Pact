@@ -57,6 +57,27 @@ app/lib/
     └── pact_memory.dart           remembers a pact that just broke
 ```
 
+## The app scaffold is disposable
+
+CI does not build `app/` directly. It runs `flutter create` into `build-app/`,
+copies `lib/`, `test/` and the Android extras across, and resolves dependencies
+with `flutter pub add` — so plugin versions come from the installed SDK rather
+than from pins written months earlier.
+
+That change followed six consecutive red builds, each a different version
+mismatch: Gradle below Flutter's minimum, AGP 9 refusing the Groovy DSL, Maven
+Central 403s, and finally plugins declaring Kotlin jvmTarget 1.8 against Java 11.
+Every one of them came from hand-pinned scaffolding drifting behind the SDK.
+
+What is genuinely ours, and therefore committed:
+
+- `lib/` — the product, every line of it
+- `test/`
+- `AndroidManifest.xml`, `res/`, `proguard-rules.pro`
+- `pubspec.yaml` for local development
+
+Everything else is regenerated on demand and safe to delete.
+
 ## Why the Gradle files are not committed
 
 `android/` holds only what is genuinely ours: the manifest, `MainActivity.kt`,

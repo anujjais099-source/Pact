@@ -1,7 +1,12 @@
 name: Build Android APK
 
-# Builds a release APK in the cloud so no local Flutter/Java install is needed.
-# Grab the file from the run's Artifacts section, or from Releases on a tag.
+# The app is rebuilt from a fresh `flutter create` on every run, and our source
+# is copied in. Nothing about the build environment is hand-pinned.
+#
+# Why: hand-written pubspec pins and Gradle config kept falling behind whatever
+# Flutter stable is today — six consecutive failures, each a different version
+# mismatch. Letting Flutter resolve its own dependency versions removes the
+# entire class of problem. lib/ is the product; everything else is scaffolding.
 on:
   push:
     branches: [main]
@@ -11,7 +16,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v5
@@ -31,36 +36,48 @@ jobs:
       - name: Show toolchain
         run: flutter --version
 
-      # Fills in gradlew, launcher icons and any platform scaffolding that is
-      # not committed. It never overwrites files that already exist, so our
-      # manifest, gradle config and MainActivity survive untouched.
-      # Gradle config is generated, not committed. Pinning AGP/Gradle by hand is
-      # what broke this build twice: the pins fall behind whatever Flutter
-      # stable now requires. Let the template be current, then apply only the
-      # four deltas Pact needs.
-      - name: Generate the Android scaffold
-        working-directory: app
+      - name: Create a fresh Flutter project
+        run: flutter create --platforms=android --org com.pactapp --project-name pact build-app
+
+      - name: Copy Pact source into it
         run: |
-          flutter create --platforms=android --org com.pactapp --project-name pact .
-          # flutter create also drops its counter-app smoke test, which refers
-          # to a MyApp class this project does not have. Our own tests live
-          # alongside it in test/.
-          rm -f test/widget_test.dart
+          set -e
+          rm -rf build-app/lib build-app/test
+          cp -r app/lib  build-app/lib
+          cp -r app/test build-app/test
+          cp app/analysis_options.yaml build-app/analysis_options.yaml
+
+          # Android extras that are genuinely ours: camera permission, the FCM
+          # channel metadata, the notification icon, splash colours.
+          cp app/android/app/src/main/AndroidManifest.xml build-app/android/app/src/main/
+          cp -r app/android/app/src/main/res/. build-app/android/app/src/main/res/
+          cp app/android/app/proguard-rules.pro build-app/android/app/
+
+          echo "--- lib/ files copied: $(find build-app/lib -name '*.dart' | wc -l) ---"
+
+      - name: Add dependencies at versions this Flutter supports
+        working-directory: build-app
+        run: |
+          set -e
+          # Riverpod is pinned: 3.x rewrote the Notifier API this code uses.
+          # Everything else floats to whatever the installed SDK resolves.
+          flutter pub add \
+            firebase_core firebase_auth cloud_firestore firebase_storage \
+            firebase_messaging firebase_analytics cloud_functions \
+            'flutter_riverpod:^2.6.1' go_router camera image \
+            timezone flutter_timezone intl cached_network_image \
+            flutter_local_notifications shared_preferences path_provider
+          flutter pub add --dev flutter_lints
+          echo "--- resolved versions ---"
+          grep -A 40 '^dependencies:' pubspec.yaml
 
       - name: Apply Pact Gradle config
-        run: node scripts/ci/patch-gradle.mjs app/android
+        run: node scripts/ci/patch-gradle.mjs build-app/android
 
-      - name: Show resolved toolchain
-        working-directory: app/android
-        run: |
-          grep distributionUrl gradle/wrapper/gradle-wrapper.properties
-          grep -E "com.android.application|kotlin.android|google-services" settings.gradle.kts
-
-      # google-services.json is git-ignored (it belongs to your Firebase
-      # project). Use the real one if you have added it as a secret, otherwise
-      # write a structurally valid stand-in so the Gradle plugin can run.
+      # google-services.json belongs to your Firebase project. The secret is
+      # used when present; otherwise a valid stand-in keeps the build green.
       - name: Provide google-services.json
-        working-directory: app/android/app
+        working-directory: build-app/android/app
         env:
           GS_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
@@ -92,14 +109,8 @@ jobs:
             echo "::warning::No GOOGLE_SERVICES_JSON secret set - built with a placeholder."
           fi
 
-      - name: Install dependencies
-        working-directory: app
-        run: flutter pub get
-
-      # Reported, not enforced: a lint should never cost you an APK. Output is
-      # mirrored into the job summary because nobody wants to scroll raw logs.
       - name: Analyze
-        working-directory: app
+        working-directory: build-app
         continue-on-error: true
         run: |
           set +e
@@ -115,7 +126,7 @@ jobs:
           exit $code
 
       - name: Test
-        working-directory: app
+        working-directory: build-app
         continue-on-error: true
         run: |
           set +e
@@ -130,8 +141,6 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit $code
 
-      # Every Dart error becomes an annotation on the run, with file and line,
-      # so failures are readable without opening a single log.
       - name: Annotate analysis
         if: always()
         run: node scripts/ci/annotate.mjs analyze analyze.txt
@@ -141,15 +150,10 @@ jobs:
         run: node scripts/ci/annotate.mjs test test.txt
 
       # Maven Central answers 403 to shared CI addresses often enough to matter.
-      # Retry only when the log looks like a transport failure — a real compile
-      # error should fail immediately rather than three times slowly.
+      # Retry only on transport-shaped failures; a compile error fails at once.
       - name: Build release APK
-        working-directory: app
+        working-directory: build-app
         env:
-          # Gradle maps -Dorg.gradle.project.X to project property X. Belt and
-          # braces alongside gradle.properties: the file edit alone did not take
-          # effect, and this route does not depend on Flutter leaving the file
-          # alone during its own build-time migration.
           GRADLE_OPTS: "-Dorg.gradle.project.kotlin.jvm.target.validation.mode=IGNORE"
         run: |
           set +e
@@ -159,7 +163,7 @@ jobs:
             flutter build apk --release 2>&1 | tee ../build.txt
             code=${PIPESTATUS[0]}
             [ $code -eq 0 ] && break
-            if grep -qE "status code 40[38]|Could not GET|Connection reset|Read timed out|Could not resolve org.jetbrains" ../build.txt; then
+            if grep -qE "status code 40[38]|Could not GET|Connection reset|Read timed out" ../build.txt; then
               echo "::warning::Repository fetch failed on attempt $attempt - retrying in 20s"
               sleep 20
             else
@@ -194,7 +198,7 @@ jobs:
           retention-days: 14
 
       - name: Rename for humans
-        run: cp app/build/app/outputs/flutter-apk/app-release.apk pact.apk
+        run: cp build-app/build/app/outputs/flutter-apk/app-release.apk pact.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
