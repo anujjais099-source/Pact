@@ -177,7 +177,7 @@ class _NotificationToggle extends ConsumerWidget {
           ),
           Switch(
             value: enabled,
-            activeColor: PactColors.violet,
+            activeThumbColor: PactColors.violet,
             onChanged: (v) => ref.read(userRepositoryProvider).setNotifications(uid, v),
           ),
         ],

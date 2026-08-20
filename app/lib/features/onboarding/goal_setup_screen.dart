@@ -136,8 +136,11 @@ class _GoalSetupScreenState extends ConsumerState<GoalSetupScreen> {
               padding: const EdgeInsets.only(bottom: 16),
               child: Row(
                 children: [
-                  const Icon(Icons.lock_outline_rounded,
-                      size: 15, color: PactColors.textTertiary),
+                  const Icon(
+                    Icons.lock_outline_rounded,
+                    size: 15,
+                    color: PactColors.textTertiary,
+                  ),
                   Gap.w8,
                   Expanded(
                     child: Text(
@@ -195,9 +198,11 @@ class _GoalChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon,
-                  size: 16,
-                  color: selected ? PactColors.violet : PactColors.textSecondary),
+              Icon(
+                icon,
+                size: 16,
+                color: selected ? PactColors.violet : PactColors.textSecondary,
+              ),
               const SizedBox(width: 7),
               Text(
                 label,

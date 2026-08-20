@@ -40,7 +40,12 @@ jobs:
       # four deltas Pact needs.
       - name: Generate the Android scaffold
         working-directory: app
-        run: flutter create --platforms=android --org com.pactapp --project-name pact .
+        run: |
+          flutter create --platforms=android --org com.pactapp --project-name pact .
+          # flutter create also drops its counter-app smoke test, which refers
+          # to a MyApp class this project does not have. Our own tests live
+          # alongside it in test/.
+          rm -f test/widget_test.dart
 
       - name: Apply Pact Gradle config
         run: node scripts/ci/patch-gradle.mjs app/android

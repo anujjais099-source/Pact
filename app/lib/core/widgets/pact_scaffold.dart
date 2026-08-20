@@ -26,6 +26,10 @@ class PactScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Copied to a local: Dart promotes locals, not final fields, so `bottom`
+    // would still read as Widget? inside the null check below.
+    final bottomBar = bottom;
+
     return Scaffold(
       backgroundColor: PactColors.black,
       extendBodyBehindAppBar: true,
@@ -59,11 +63,11 @@ class PactScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: bottom == null
+      bottomNavigationBar: bottomBar == null
           ? null
           : SafeArea(
               minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              child: bottom,
+              child: bottomBar,
             ),
     );
   }

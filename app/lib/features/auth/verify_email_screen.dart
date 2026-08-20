@@ -82,12 +82,15 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           Container(
             height: 62,
             width: 62,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: PactColors.violetSoft,
               borderRadius: Radii.md,
             ),
-            child: const Icon(Icons.mark_email_unread_rounded,
-                color: PactColors.violet, size: 28),
+            child: const Icon(
+              Icons.mark_email_unread_rounded,
+              color: PactColors.violet,
+              size: 28,
+            ),
           ),
           Gap.h24,
           Text('Check your inbox.', style: t.headlineMedium),

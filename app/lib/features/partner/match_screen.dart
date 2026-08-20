@@ -92,8 +92,11 @@ class MatchScreen extends ConsumerWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.do_not_disturb_on_outlined,
-                    size: 17, color: PactColors.textTertiary),
+                const Icon(
+                  Icons.do_not_disturb_on_outlined,
+                  size: 17,
+                  color: PactColors.textTertiary,
+                ),
                 Gap.w12,
                 Expanded(
                   child: Text(

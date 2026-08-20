@@ -40,6 +40,11 @@ class HomeScreen extends ConsumerWidget {
 
     return PactScaffold(
       padded: false,
+      bottom: _CheckInBar(
+        status: myStatus,
+        urgent: urgent,
+        onCheckIn: () => context.push(Routes.checkIn),
+      ),
       child: RefreshIndicator(
         color: PactColors.violet,
         backgroundColor: PactColors.surfaceHigh,
@@ -124,11 +129,6 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-      bottom: _CheckInBar(
-        status: myStatus,
-        urgent: urgent,
-        onCheckIn: () => context.push(Routes.checkIn),
       ),
     );
   }

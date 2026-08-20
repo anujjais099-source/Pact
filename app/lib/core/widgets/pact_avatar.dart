@@ -60,7 +60,7 @@ class PactAvatar extends StatelessWidget {
                 imageUrl: avatarUrl!,
                 fit: BoxFit.cover,
                 fadeInDuration: const Duration(milliseconds: 180),
-                placeholder: (_, __) => ColoredBox(color: PactColors.surfaceHigh),
+                placeholder: (_, __) => const ColoredBox(color: PactColors.surfaceHigh),
                 errorWidget: (_, __, ___) => ColoredBox(
                   color: _tint.withValues(alpha: 0.18),
                   child: Center(

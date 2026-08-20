@@ -41,7 +41,10 @@ class PactError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: PactColors.redSoft, borderRadius: Radii.md),
+      decoration: const BoxDecoration(
+        color: PactColors.redSoft,
+        borderRadius: Radii.md,
+      ),
       child: Row(
         children: [
           const Icon(Icons.error_outline_rounded, color: PactColors.red, size: 18),

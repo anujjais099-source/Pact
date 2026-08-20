@@ -63,7 +63,7 @@ class UserRepository {
       'emailVerified': emailVerified,
       'lastActiveAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    }, SetOptions(merge: true),);
   }
 
   Future<void> saveFcmToken(String uid, String token) => Paths.user(_db, uid).update({
