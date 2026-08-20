@@ -58,6 +58,24 @@ edit('settings.gradle.kts', `google-services ${GOOGLE_SERVICES} declared`, (s) =
   );
 });
 
+// ── settings.gradle.kts — repository order and an explicit Central mirror ───
+// Gradle asks plugins.gradle.org first, which proxies to repo.maven.apache.org.
+// From shared CI addresses that proxy intermittently answers 403 Forbidden.
+// Naming repo1.maven.org (Central's canonical host) ahead of it gives
+// resolution a path that does not depend on the portal proxy.
+edit('settings.gradle.kts', 'Maven Central mirror first', (s) => {
+  if (s.includes('repo1.maven.org')) return s;
+  const anchor = /(\n\s*)google\(\)(\s*\n\s*)mavenCentral\(\)/;
+  if (!anchor.test(s)) {
+    problems.push('settings.gradle.kts: repositories block not found');
+    return null;
+  }
+  return s.replace(
+    anchor,
+    '$1google()$2maven { url = uri("https://repo1.maven.org/maven2") }$2mavenCentral()'
+  );
+});
+
 // ── app/build.gradle.kts ────────────────────────────────────────────────────
 edit('app/build.gradle.kts', 'google-services applied', (s) => {
   if (/id\("com\.google\.gms\.google-services"\)/.test(s)) return s;

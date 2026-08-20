@@ -140,12 +140,26 @@ jobs:
         if: always()
         run: node scripts/ci/annotate.mjs test test.txt
 
+      # Maven Central answers 403 to shared CI addresses often enough to matter.
+      # Retry only when the log looks like a transport failure — a real compile
+      # error should fail immediately rather than three times slowly.
       - name: Build release APK
         working-directory: app
         run: |
           set +e
-          flutter build apk --release 2>&1 | tee ../build.txt
-          code=${PIPESTATUS[0]}
+          code=1
+          for attempt in 1 2 3; do
+            echo "--- build attempt $attempt ---"
+            flutter build apk --release 2>&1 | tee ../build.txt
+            code=${PIPESTATUS[0]}
+            [ $code -eq 0 ] && break
+            if grep -qE "status code 40[38]|Could not GET|Connection reset|Read timed out|Could not resolve org.jetbrains" ../build.txt; then
+              echo "::warning::Repository fetch failed on attempt $attempt - retrying in 20s"
+              sleep 20
+            else
+              break
+            fi
+          done
           if [ $code -ne 0 ]; then
             {
               echo "## build failed"
@@ -157,8 +171,6 @@ jobs:
           fi
           exit $code
 
-      # Whatever failed, put the reason in the Annotations box — that is the
-      # one place the failure is visible without opening a log.
       - name: Annotate build failure
         if: failure()
         run: node scripts/ci/annotate.mjs build build.txt
