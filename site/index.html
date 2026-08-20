@@ -625,33 +625,56 @@ p{margin:0}
 </script>
 
 <script>
-/* ─────────────────────────────────────────────────────────────
-   THE ONLY TWO LINES YOU NEED TO EDIT
+/* ═════════════════════════════════════════════════════════════
+   THE ONLY LINES YOU EDIT. Fill the top one that applies.
 
-   PLAY_URL      empty  -> the button collects launch-day emails
-                 filled -> the button becomes a real Play Store download
-   NOTIFY_EMAIL  where those launch-day emails should land
-   ───────────────────────────────────────────────────────────── */
+   1. PLAY_URL  — set this once Pact is on Google Play.  Wins over everything.
+   2. APK_URL   — direct download while you are still testing with friends.
+                  Drop the file at site/pact.apk and set this to "/pact.apk".
+   3. neither   — the button collects launch-day emails instead.
+   ═════════════════════════════════════════════════════════════ */
 const PLAY_URL     = "";
-const NOTIFY_EMAIL = "you@example.com";
+const APK_URL      = "";
+const NOTIFY_EMAIL = "anujjais099@gmail.com";
 
 (function () {
-  const btn   = document.getElementById('downloadBtn');
-  const label = document.getElementById('ctaLabel');
-  const sub   = document.getElementById('ctaSub');
-  const soon  = document.getElementById('preLaunch');
+  const btn   = document.getElementById("downloadBtn");
+  const label = document.getElementById("ctaLabel");
+  const sub   = document.getElementById("ctaSub");
+  const note  = document.getElementById("preLaunch");
+
+  function setNote(badge, text) {
+    if (!note) return;
+    note.hidden = false;
+    note.innerHTML = '<span class="badge">' + badge + '</span><span>' + text + '</span>';
+  }
 
   if (PLAY_URL) {
     btn.href = PLAY_URL;
-    btn.target = '_blank';
-    sub.textContent = 'Android · Free';
-    label.textContent = 'Download on Google Play';
-    if (soon) soon.hidden = true;
+    btn.target = "_blank";
+    sub.textContent = "Android · Free";
+    label.textContent = "Download on Google Play";
+    if (note) note.hidden = true;
+
+  } else if (APK_URL) {
+    // Sideloading is a real step people get stuck on. Say it before they hit it.
+    btn.href = APK_URL;
+    btn.setAttribute("download", "pact.apk");
+    sub.textContent = "Android · Direct download";
+    label.textContent = "Download the APK";
+    setNote("BETA",
+      "Not on Google Play yet. Android will ask you to allow installs from " +
+      "this source the first time — that is normal for a direct download. " +
+      "Tap <b>More details → Install anyway</b> if you see a warning.");
+
   } else {
-    btn.href = 'mailto:' + NOTIFY_EMAIL +
-      '?subject=' + encodeURIComponent('Send me Pact when it launches');
-    sub.textContent = 'Android · Launching soon';
-    label.textContent = 'Get the launch link';
+    btn.href = "mailto:" + NOTIFY_EMAIL +
+      "?subject=" + encodeURIComponent("Send me Pact when it is ready");
+    sub.textContent = "Android · Launching soon";
+    label.textContent = "Get the launch link";
+    setNote("SOON",
+      "Pact launches on Android shortly. Leave your email and you get the " +
+      "link the day it is ready — nothing else, ever.");
   }
 })();
 </script>

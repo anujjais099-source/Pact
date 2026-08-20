@@ -43,20 +43,33 @@ Every `git push` from then on redeploys automatically.
 
 ## Before you share the link
 
-Open `index.html` and edit the two constants at the bottom:
+Open `index.html`, scroll to the bottom, and fill in the top line that applies:
 
 ```js
-const PLAY_URL     = "";                  // paste your Play Store link here
-const NOTIFY_EMAIL = "you@example.com";   // where launch-day emails land
+const PLAY_URL     = "";                       // 3. once you are on Google Play
+const APK_URL      = "";                       // 2. direct download for testers
+const NOTIFY_EMAIL = "anujjais099@gmail.com";  // 1. fallback: collect emails
 ```
 
-- **`PLAY_URL` empty** → the button reads *"Get the launch link"* and opens a
-  pre-filled email. Correct for a pre-launch page.
-- **`PLAY_URL` set** → the button turns into a real *"Download on Google Play"*
-  link and the "launching soon" note hides itself. No other edits needed.
+The button rewrites itself based on which one is filled — there is no other edit
+to remember.
 
-Then swap `https://pact.vercel.app/` for your real URL in three places:
-`<link rel="canonical">`, the two `og:url` / sitemap entries, and `robots.txt`.
+| Filled | Button reads | Extra |
+|---|---|---|
+| neither | **Get the launch link** | opens a pre-filled email to you |
+| `APK_URL` | **Download the APK** | shows the "allow install from this source" warning testers need |
+| `PLAY_URL` | **Download on Google Play** | the beta note hides itself |
+
+### Handing friends an APK
+
+1. `cd app && flutter build apk --release`
+2. Copy `app/build/app/outputs/flutter-apk/app-release.apk` to `site/pact.apk`
+3. Set `const APK_URL = "/pact.apk";`
+4. Push. The APK is served with the right MIME type so Android treats it as an
+   install, not a text file (handled in the root `vercel.json`).
+
+Note the `.gitignore` skips `*.apk` by default — force it in with
+`git add -f site/pact.apk` when you are ready to publish a build.
 
 ## Social preview image
 
