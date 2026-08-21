@@ -79,6 +79,22 @@ to remember.
 Note the `.gitignore` skips `*.apk` by default — force it in with
 `git add -f site/pact.apk` when you are ready to publish a build.
 
+## Installing over a previous build
+
+Android refuses to replace an installed app whose signature does not match the
+new one, and reports it as a bare **"App not installed"**.
+
+CI signs with the debug keystore, and a runner has none — so unless
+`ANDROID_KEYSTORE_BASE64` is set as a repository secret, every build is signed
+with a fresh throwaway key and every update hits that wall.
+
+**To fix it permanently, once:** open any workflow run, download the
+**signing-key** artifact, and paste the contents of `keystore.b64` into
+**Settings → Secrets and variables → Actions → New repository secret** named
+`ANDROID_KEYSTORE_BASE64`. Every build from then on shares one signature.
+
+**Until then:** uninstall Pactly before installing a new build.
+
 ## Analytics
 
 Google Analytics 4 is installed in the `<head>`, property `G-6E27HWMNEH`.

@@ -111,6 +111,40 @@ jobs:
             echo "::warning::No GOOGLE_SERVICES_JSON secret set - built with a placeholder."
           fi
 
+      # AGP signs release builds with the debug keystore, and a CI runner has
+      # none — so it generates a fresh one every run. Every build therefore
+      # carries a DIFFERENT signature, and Android refuses to replace an
+      # installed app whose signature does not match: "App not installed".
+      #
+      # With the secret set, every build shares one key and updates install
+      # over the top. Without it we generate a throwaway and say so loudly.
+      - name: Prepare signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -e
+          mkdir -p ~/.android
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+            echo "Signing with the stable key from ANDROID_KEYSTORE_BASE64."
+          else
+            keytool -genkeypair -v \
+              -keystore ~/.android/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10950 \
+              -dname "CN=Pactly Demo, OU=Demo, O=Pactly, L=, S=, C=IN"
+            base64 -w0 ~/.android/debug.keystore > keystore.b64
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret set. This build has a one-off signature, so installing it over a previous build fails. Download the signing-key artifact and add its contents as that secret to make signatures stable."
+          fi
+
+      - name: Upload signing key for the secret
+        if: hashFiles('keystore.b64') != ''
+        uses: actions/upload-artifact@v5
+        with:
+          name: signing-key
+          path: keystore.b64
+          retention-days: 7
+
       - name: Analyze
         working-directory: build-app
         continue-on-error: true
