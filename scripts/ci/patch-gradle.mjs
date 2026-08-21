@@ -153,6 +153,30 @@ edit('app/build.gradle.kts', 'applicationId com.pactly.android', (s) => {
   return s.replace(anchor, 'applicationId = "com.pactly.android"');
 });
 
+// ── app/build.gradle.kts — sign with v1 as well as v2/v3 ───────────────────
+// The release APK was signed with v2/v3 only, which Android 7+ accepts but
+// Android 6 and some OEM installers reject outright as unsigned — reported as
+// a bare "App not installed". minSdk is 23, so v1 has to be there too.
+edit('app/build.gradle.kts', 'v1 JAR signing enabled', (s) => {
+  if (s.includes('enableV1Signing')) return s;
+  const anchor = /(\n\s*)buildTypes \{/;
+  if (!anchor.test(s)) {
+    problems.push('app/build.gradle.kts: buildTypes block not found');
+    return null;
+  }
+  return s.replace(
+    anchor,
+    '$1signingConfigs {' +
+      '$1    getByName("debug") {' +
+      '$1        enableV1Signing = true' +
+      '$1        enableV2Signing = true' +
+      '$1    }' +
+      '$1}' +
+      '$1' +
+      '$1buildTypes {'
+  );
+});
+
 // ── gradle.properties — stop the JVM-target mismatch failing the build ──────
 // AGP now compiles library Java at 11, while plugins such as flutter_timezone,
 // cloud_functions and camera_android_camerax still declare Kotlin jvmTarget
